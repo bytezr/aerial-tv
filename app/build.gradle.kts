@@ -45,6 +45,14 @@ android {
             dimension = "home"
             versionNameSuffix = "-guard"
         }
+        // oppo: ColorOS TV installs a HOME app only under one of three launcher package names
+        // (docs/devices/oppo-coloros-tv.md). The manifest's ${applicationId} placeholders (the
+        // dynamic-receiver permission, androidx-startup, the file provider) follow the new name.
+        create("oppo") {
+            dimension = "home"
+            applicationId = "com.oneplus.tv.launcher2"
+            versionNameSuffix = "-oppo"
+        }
     }
 
     // The TVs only accept updates signed with the key Aerial was first installed with. That key

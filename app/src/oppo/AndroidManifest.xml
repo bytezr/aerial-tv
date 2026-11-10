@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity android:name="app.orchard.tv.MainActivity">
+            <!-- ColorOS TV boots only into a launcher carrying MODERN_HOME; without it the TV stays on
+                 the boot animation (OPPO K9 OPPOCNM652, ColorOS TV 2.4; docs/devices/oppo-coloros-tv.md). -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="com.heytap.tv.launcher.category.MODERN_HOME" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

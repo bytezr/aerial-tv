@@ -455,18 +455,21 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun refreshSystem() {
+        // Keep this on the same thread as network callbacks. At boot a read taken before the
+        // slow input/brightness probes could overwrite Wi-Fi connecting in the meantime (OPPO K9).
+        refreshNetwork()
         viewModelScope.launch {
             val ctx = context
             // Brightness off the main thread too: on MiTV without picture_backlight its first read
             // probes the panel over binder (MitvPanel.usable).
-            val (n, v, s) = withContext(Dispatchers.Default) {
-                Triple(SystemProbe.network(ctx), SystemProbe.volume(ctx), SystemProbe.sources(ctx))
+            val (v, s) = withContext(Dispatchers.Default) {
+                SystemProbe.volume(ctx) to SystemProbe.sources(ctx)
             }
             // Home status before the brightness, apart from it: a brightness read that waits on a
             // vendor binder must not keep the panel saying "not the default home" (issue #892).
             homeStatus = withContext(Dispatchers.Default) { SystemProbe.homeStatus(ctx) }
             val level = withContext(Dispatchers.Default) { Brightness.level(ctx) }
-            network = n; volume = v
+            volume = v
             // TvSource holds an Intent, which has no value equality; compare what a tile shows.
             // The route too: a corrected Xiaomi source id changes nothing a tile shows.
             fun shown(list: List<TvSource>) = list.map { listOf(it.id, it.label, it.deviceName, it.intent.toUri(0)) }
@@ -518,7 +521,13 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun refreshNetwork() { network = SystemProbe.network(context) }
+    fun refreshNetwork() {
+        val next = SystemProbe.network(context)
+        if (network.kind != next.kind || network.vpn != next.vpn) {
+            DiagLog.i("network ${network.kind} -> ${next.kind}; vpn=${next.vpn}")
+        }
+        network = next
+    }
 
     /**
      * For the volume broadcast, one per step. It used to run refreshSystem, which read the level,

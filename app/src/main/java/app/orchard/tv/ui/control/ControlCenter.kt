@@ -304,11 +304,33 @@ private fun MainPage(vm: HomeViewModel, now: LocalDateTime, takeFocus: Boolean, 
             )
         }
         Updates.available?.let { latest ->
-            MenuRow(
-                Glyph.Info,
-                stringResource(R.string.cc_update_available, latest),
-                onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Update) },
-            )
+            if (Updates.canInstall(context)) {
+                MenuRow(
+                    Glyph.Info,
+                    stringResource(R.string.cc_update_available, latest),
+                    onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Update) },
+                )
+            } else {
+                // Renamed builds cannot install an official release. Keep the notice outside
+                // Pressable so neither the remote nor a pointer can open the official update page.
+                Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        GlyphIcon(Glyph.Info, Palette.SecondaryLabel, 18.dp)
+                        BasicText(
+                            stringResource(R.string.cc_update_available, latest),
+                            style = Type.Body.copy(color = Palette.SecondaryLabel),
+                        )
+                    }
+                    BasicText(
+                        stringResource(R.string.cc_update_custom),
+                        style = Type.Caption.copy(color = Palette.TertiaryLabel),
+                        modifier = Modifier.padding(start = 30.dp, top = 4.dp),
+                    )
+                }
+            }
         }
 
         // Android 9 to 11, Aerial running uncompiled: reinstalling itself has the system compile it,
